@@ -1,27 +1,17 @@
-SRCS=$(wildcard src/*.cpp)
-OBJS=$(patsubst src/%.cpp, obj/%.o, $(SRCS))
+SRCS=$(wildcard src/*.c)
+OBJS=$(patsubst src/%.c, obj/%.o, $(SRCS))
+CFLAGS=-I inc
+CC=gcc
 
-CC := g++
-CFLAGS := -I inc
-PRJ := dsa
+all: dsa
 
-all: $(PRJ)
+obj/%.o: src/%.c
+	$(CC) -c -o $@ $< $(CFLAGS)
 
-init:
-	if [ ! -f obj ];then 	\
-		mkdir obj; 			\
-	fi
-	
-$(PRJ): $(OBJS)
-	gcc $^ -o $@
-
-obj/%.o: src/%.cpp
-	gcc -c $< -o $@ $(CFLAGS)
+dsa: $(OBJS)
+	$(CC) -o $@ $^ $(CFLAGS) -lm
 
 clean:
-ifeq ($(PRJ), $(wildcard $(PRJ)))
-	rm $(PRJ) obj/*
-endif
-	clear
+	@rm -rf obj/*
 
 re: clean all

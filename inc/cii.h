@@ -3,7 +3,5 @@
 #include "llist.h"
 #include "hash.h"
 #include "binheap.h"
-
-
-
+#include "hash_table.h"
 #endif

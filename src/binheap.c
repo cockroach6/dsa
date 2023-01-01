@@ -11,7 +11,6 @@
 
 static void heap_errmsg(const char *msg) {
 	fprintf(stderr, "Error: heap tree %s\n", msg);
-	exit(0);
 }
 
 static void heap_swap(node_t *a, node_t *b) {
@@ -121,5 +120,6 @@ int binheap_test()
 	heap_push(heap, 56);
 	heap_push(heap, 4);
 	heap_push(heap, 0);
+	printf("\n");
 	return 0;
 }

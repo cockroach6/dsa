@@ -12,9 +12,9 @@ ht_get_hash (char *key)
   int hash = 0;
 
   for (int i = 0; i < strlen (key); ++i) {
-    hash += (HT_PRIME * hash + HT_PRIME * key[i] - key[i]) % (HT_SIZE - 1); 
+    hash += (HT_PRIME * hash + HT_PRIME * key[i] - key[i]) % HT_SIZE;
   }
-  return hash & (HT_SIZE - 1);
+  return hash % HT_SIZE;
 }
 
 static ht_item
@@ -63,19 +63,26 @@ ht_hash_table
 /* hash table is meant to increase/ decrise
    its size so there alwals will be space for
    new item.  */
-void
+int
 ht_insert (ht_hash_table *ht, char *key, char *value)
 {
   int index;
 
-  index = ht_get_hash (key);
-  /* if there is a duplicate key, delete previos one
-     and insert new one.  */
-  if (ht->items[index] != NULL) {
-    ht_del_item (ht->items[index]);
+  if (ht->count + 1 >= ht->size) {
+    fprintf(stderr, "err: hash table is full\n");
+    return 1;
   }
+
+  /* if index is not free look for next free space.  */
+  index = ht_get_hash (key);
+  do {
+    index = index % HT_SIZE;
+    ++index;
+  } while (ht->items[index] != NULL);
+
   ht->items[index] = ht_new_item (key, value);
   ++ht->count;
+  return 0;
 }
 
 char
@@ -97,7 +104,7 @@ ht_show_hash_table (ht_hash_table *ht)
 {
   for (int i = 0; i < ht->size; ++i) {
     if (ht->items[i] != NULL) {
-      printf("%s: %s\n", ht->items[i]->key, ht->items[i]->value);
+      printf("idx=%d: %s: %s\n", i, ht->items[i]->key, ht->items[i]->value);
     }
   }
 }
@@ -108,12 +115,18 @@ void
 ht_delete (ht_hash_table *ht, char *key)
 {
   int index;
-  ht_item *item;
 
+
+  /* if index is not free look for next free space.  */
   index = ht_get_hash (key);
-  if (strcmp (ht->items[index]->key, key) == 0) {
-    ht_del_item (ht->items[index]);
+  while (ht->items[index] == NULL) {
+    ++index;
+    index %= HT_SIZE;    
   }
+
+  ht_del_item (ht->items[index]);
+  ht->items[index] = NULL;
+  --ht->count;
 }
 
 void ht_delete_hash_table (ht_hash_table *ht)
@@ -135,28 +148,24 @@ void ht_delete_hash_table (ht_hash_table *ht)
 
 
 void
-test (void)
+hash_table_test (void)
 {
   ht_hash_table *ht = ht_new ();
+
+  printf("Hash Table\n");
   ht_insert (ht, "Sam", "+1 2345");
   ht_insert (ht, "Sam", "+2 2345");
+  ht_insert (ht, "Sam", "+2 2345");
+  ht_insert (ht, "Sam", "+2 2345");
+  ht_insert (ht, "Sam", "+2 2345");
   ht_insert (ht, "Jake", "+2 2345");
-
-  char *phone_number = ht_search (ht, "Sams");
-  if (phone_number != NULL) {
-    printf("Sam's phone number [%s]\n", phone_number);
-  }
-  else {
-    printf("There is no key 'Sams'\n");
-  }
+  ht_insert (ht, "Jake", "+2 2345");
+  ht_insert (ht, "Jake", "+2 2345");
+  ht_insert (ht, "Jake", "+2 2345");
+  ht_insert (ht, "Jake", "+2 2345");
+  ht_insert (ht, "Jake", "+2 2345");
+  ht_delete (ht, "Jake");
 
   ht_show_hash_table (ht);
   ht_delete_hash_table (ht);
-}
-
-int
-main (void)
-{
-  test ();
-  return 0;
 }
